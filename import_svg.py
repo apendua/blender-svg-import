@@ -1752,7 +1752,11 @@ class SVGGeometrySVG(SVGGeometryContainer):
         self._pushMatrix(self.getNodeMatrix())
         self._pushRect(rect)
 
-        ob = SVGCreateCurve()
+        ob = SVGCreateCurve(True) # force creating a new object
+
+        # temporary workaround
+        ob.scale.x = 1 / max(*rect)
+        ob.scale.y = 1 / max(*rect)
 
         super()._doCreateGeom(False)
 
