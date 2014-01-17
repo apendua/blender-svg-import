@@ -114,25 +114,24 @@ def SVGParseFloat(s, i=0):
 
     return token, i
 
-
-def SVGCreateCurve():
+def SVGCreateCurve(force=False):
     """
     Create new curve object to hold splines in
     """
+    if force or SVGCreateCurve.obj is None:
+        cu = bpy.data.curves.new("Curve", 'CURVE')
+        SVGCreateCurve.obj = bpy.data.objects.new("Curve", cu)
+        bpy.context.scene.objects.link(SVGCreateCurve.obj)
 
-    cu = bpy.data.curves.new("Curve", 'CURVE')
-    obj = bpy.data.objects.new("Curve", cu)
-    bpy.context.scene.objects.link(obj)
+    return SVGCreateCurve.obj
+SVGCreateCurve.obj = None
 
-    return obj
-
-
-def SVGFinishCurve():
+def SVGFinishCurve(force=False):
     """
     Finish curve creation
     """
-
-    pass
+    if force:
+        SVGCreateCurve.obj = None
 
 
 def SVGFlipHandle(x, y, x1, y1):
@@ -991,6 +990,8 @@ class SVGGeometry:
         Push transformation matrix
         """
 
+        print('pushing matrix', matrix)
+
         self._context['transform'].append(matrix)
         self._context['matrix'] = self._context['matrix'] * matrix
 
@@ -1179,10 +1180,10 @@ class SVGGeometryPATH(SVGGeometry):
             cu.name = self._node.getAttribute('id')
 
         if self._styles['useFill']:
-            cu.dimensions = '2D'
+            #cu.dimensions = '2D'
             cu.materials.append(self._styles['fill'])
-        else:
-            cu.dimensions = '3D'
+        #else:
+        #    cu.dimensions = '3D'
 
         for spline in self._splines:
             act_spline = None
@@ -1394,10 +1395,10 @@ class SVGGeometryRECT(SVGGeometry):
         cu = ob.data
 
         if self._styles['useFill']:
-            cu.dimensions = '2D'
+        #    cu.dimensions = '2D'
             cu.materials.append(self._styles['fill'])
-        else:
-            cu.dimensions = '3D'
+        #else:
+        #    cu.dimensions = '3D'
 
         cu.splines.new('BEZIER')
 
@@ -1840,7 +1841,12 @@ def load_svg(filepath):
 
     loader = SVGLoader(filepath)
     loader.parse()
+
+    SVGCreateCurve(True) # force creating a new object
+
     loader.createGeom(False)
+
+    SVGFinishCurve(True)
 
 
 def load(operator, context, filepath=""):
