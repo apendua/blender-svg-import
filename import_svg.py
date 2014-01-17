@@ -192,7 +192,8 @@ def SVGMatrixFromNode(node, context):
     """
 
     tagName = node.tagName.lower()
-    tags = ['svg:svg', 'svg:use', 'svg:symbol']
+    # tags = ['svg:svg', 'svg:use', 'svg:symbol']
+    tags = ['svg:use', 'svg:symbol']
 
     if tagName not in tags and 'svg:' + tagName not in tags:
         return Matrix()
@@ -990,8 +991,6 @@ class SVGGeometry:
         Push transformation matrix
         """
 
-        print('pushing matrix', matrix)
-
         self._context['transform'].append(matrix)
         self._context['matrix'] = self._context['matrix'] * matrix
 
@@ -1753,7 +1752,11 @@ class SVGGeometrySVG(SVGGeometryContainer):
         self._pushMatrix(self.getNodeMatrix())
         self._pushRect(rect)
 
+        ob = SVGCreateCurve()
+
         super()._doCreateGeom(False)
+
+        SVGFinishCurve()
 
         self._popRect()
         self._popMatrix()
@@ -1782,8 +1785,9 @@ class SVGLoader(SVGGeometryContainer):
         node = xml.dom.minidom.parse(filepath)
 
         m = Matrix()
-        m = m * Matrix.Scale(1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((1.0, 0.0, 0.0)))
-        m = m * Matrix.Scale(-1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((0.0, 1.0, 0.0)))
+        
+        #m = m * Matrix.Scale(1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((1.0, 0.0, 0.0)))
+        #m = m * Matrix.Scale(-1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((0.0, 1.0, 0.0)))
 
         rect = (1, 1)
 
@@ -1842,11 +1846,7 @@ def load_svg(filepath):
     loader = SVGLoader(filepath)
     loader.parse()
 
-    SVGCreateCurve(True) # force creating a new object
-
     loader.createGeom(False)
-
-    SVGFinishCurve(True)
 
 
 def load(operator, context, filepath=""):
